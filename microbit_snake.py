@@ -10,7 +10,7 @@ class Point:
 
     # Gets the coordinates of the point
     def get_coordinates(self):
-        return self.x, self.y
+        return self
 
     # Move the point in the direction of the given direction
     def move(self, direction):
@@ -40,6 +40,9 @@ class Point:
         self.x += 1
         self.x = self.x % 5
 
+    def __eq__(self, other):
+        return self.x == other.x and self.y == other.y
+
 
 class Direction:
     UP = "up"
@@ -67,7 +70,6 @@ class Snake:
 
     def get_direction(self):
         return self.direction
-
 
     def get_length(self):
         return len(self.body)
@@ -120,14 +122,18 @@ def run():
         snake.update()
         point_brightness = 9
         for point in snake.body:
-            if point_brightness > 1:
+            if point_brightness > 5:
                 point_brightness -= 2
             display.set_pixel(point.x, point.y, point_brightness)
             if food_in_game:
-                if food.get_location().x == point.x and food.get_location().y == point.y \
-                        and point.x != snake.get_head().x and point.y != snake.get_head().y:
+                # check if the snake head is on the food
+                if snake.get_head() == food.get_location():
+                    food_in_game = False
+                    snake.add_segment()
+                while food.get_location() == point:
                     # spawn a new food
                     food.spawn()
+
                 display.set_pixel(food.get_location().x, food.get_location().y, 9)
                 food_timer += 1
                 if food_timer == 30:
@@ -135,11 +141,6 @@ def run():
             else:
                 if random.randint(0, 100) == 0:
                     food_in_game = True
-
-        # check if the snake head is on the food
-        if snake.get_head().x == food.get_location().x and snake.get_head().y == food.get_location().y:
-            food_in_game = False
-            snake.add_segment()
 
         # check if the snake has hit itself
         for i in range(1, snake.get_length()):
